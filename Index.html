@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #74ebd5, #9face6);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .dashboard {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+      padding: 30px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .weather-info {
+      margin: 15px 0;
+      font-size: 1.2rem;
+      color: #444;
+    }
+
+    input, button {
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+
+    button {
+      background: #4cafef;
+      color: white;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+
+    button:hover {
+      background: #007bff;
+    }
+
+    .forecast {
+      margin-top: 20px;
+    }
+
+    .forecast-day {
+      background: #f1f1f1;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h1>🌤 Weather Dashboard</h1>
+    <input type="text" id="cityInput" placeholder="Enter city name">
+    <button onclick="getWeather()">Search</button>
+
+    <div id="weatherResult"></div>
+    <div class="forecast" id="forecastResult"></div>
+  </div>
+
+  <script>
+    const apiKey = "YOUR_API_KEY"; // Replace with your OpenWeatherMap API key
+
+    async function getWeather() {
+      const city = document.getElementById("cityInput").value;
+      if (!city) {
+        alert("Please enter a city name");
+        return;
+      }
+
+      try {
+        // Current Weather
+        const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+        const weatherResponse = await fetch(weatherUrl);
+        const weatherData = await weatherResponse.json();
+
+        if (weatherData.cod !== 200) {
+          document.getElementById("weatherResult").innerHTML = `<p style="color:red;">${weatherData.message}</p>`;
+          return;
+        }
+
+        document.getElementById("weatherResult").innerHTML = `
+          <div class="weather-info">
+            <h2>${weatherData.name}, ${weatherData.sys.country}</h2>
+            <p>🌡 Temperature: ${weatherData.main.temp}°C</p>
+            <p>☁ Weather: ${weatherData.weather[0].description}</p>
+            <p>💨 Wind: ${weatherData.wind.speed} m/s</p>
+          </div>
+        `;
+
+        // 5-Day Forecast
+        const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`;
+        const forecastResponse = await fetch(forecastUrl);
+        const forecastData = await forecastResponse.json();
+
+        let forecastHTML = "<h3>5-Day Forecast</h3>";
+        const dailyForecasts = {};
+
+        forecastData.list.forEach(item => {
+          const date = item.dt_txt
